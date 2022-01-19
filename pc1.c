@@ -132,7 +132,7 @@ unsigned char decrypt(unsigned char v, char *password)
 //--------------------------------------------------------------------
 int file_decrypt(FILE *f_in, FILE *f_out, char *password)
 {
-        long filesize, encrypted_len, block_size;
+        long filesize=0, encrypted_len=0, block_size=0;
         char buffer[1024] = { 0 };
         unsigned char buffer2[1024] = { 0 };
         int i;
