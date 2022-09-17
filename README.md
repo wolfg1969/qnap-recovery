@@ -52,16 +52,16 @@ Preparing a VM with an up-to-date firmware
 * extract firmware and patch initrd
 
   ``` bash
-mkdir firmware
-tar xzf TS-X51_20211223-4.5.4.1892.tgz -C firmware
-cd firmware
-unlzma <../initrd.boot >initrd.cpio
-mkdir initrd
-cd initrd
-cpio -i <../initrd.cpio
-patch -p1 <../../init_check.sh.diff
-find . | cpio --quiet -H newc -o | lzma -9 >../initrd.lzma
-cd ..
+  mkdir firmware
+  tar xzf TS-X51_20211223-4.5.4.1892.tgz -C firmware
+  cd firmware
+  unlzma <../initrd.boot >initrd.cpio
+  mkdir initrd
+  cd initrd
+  cpio -i <../initrd.cpio
+  patch -p1 <../../init_check.sh.diff
+  find . | cpio --quiet -H newc -o | lzma -9 >../initrd.lzma
+  cd ..
   ```
 
 * build disk image from rootfs2.bz
