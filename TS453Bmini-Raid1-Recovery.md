@@ -24,7 +24,7 @@ QNAP 使用了自己的 segment type，很无语。
 
 在 Github 找到了此方法，能够使用 QEMU 虚拟机来访问磁盘数据。
 
-### 数据恢复步骤：
+### 数据恢复步骤
 
 将 Raid 1 中的任意一块磁盘接入 PC，开机。
 
@@ -322,3 +322,7 @@ root@osboxes:/shared# lvdisplay
 ```
 
 恢复成功。放到 Open Media Vault 里也能够被系统正确识别和挂载 LVM 卷。
+
+* https://github.com/mkke/qnap-recovery
+* https://github.com/lxzheng/qnap-recovery
+* https://github.com/mkke/qnap-recovery
