@@ -323,6 +323,110 @@ root@osboxes:/shared# lvdisplay
 
 恢复成功。放到 Open Media Vault 里也能够被系统正确识别和挂载 LVM 卷。
 
-* https://github.com/mkke/qnap-recovery
-* https://github.com/lxzheng/qnap-recovery
-* https://github.com/mkke/qnap-recovery
+* [@mkke/qnap-recovery](https://github.com/mkke/qnap-recovery)
+* [@lxzheng/qnap-recovery](https://github.com/lxzheng/qnap-recovery)
+* [@andresiraola/qnap-recovery](https://github.com/andresiraola/qnap-recovery)
+
+### 再次在 Windows 下尝试访问 RAID 1 磁盘
+
+```
+qemu-system-x86_64.exe -s -kernel bzImage -nographic -initrd initrd.lzma -snapshot  -hda \\.\PhysicalDrive2 -hdb usr.img -m 2G --enable-kvm
+```
+
+PhysicalDrive2 就是通过 usb 转 sata 转接线连接的 NAS 硬盘。
+
+```
+[   45.000655] drbd: initialized. Version: 8.4.10 (api:1/proto:86-101)
+[   45.002576] drbd: srcversion: 1279A587E9CD8708A3DB014
+[   45.004411] drbd: registered as block device major 147
+
+
+[   64.933476] mpath_util[1908]: segfault at 7ffc1fe53ff8 ip 00007fd5d0779d8b sp 00007ffc1fe54000 error 6 in ld-2.21.so[7fd5d076b000+22000]
+/sbin/daemon_mgr: error while loading shared libraries: libuLinux_config.so.0: cannot open shared object file: No such file or directory
+```
+
+启动信息有看到 drbd 服务启动的信息。最后会有一个报错信息，多等一会儿就看到登录提示了。
+
+```
+(none) login:
+Password:
+login[1967]: root login on 'ttyS0'
+-sh: id: command not found
+-sh: reset: command not found
+[~] # mkdir /usr
+[~] # mount /dev/sdb /usr
+[~] # logout
+```
+
+再次登入，启动 lvmetad 服务
+
+```
+Welcome to use the QNAP's products.
+
+(none) login: admin
+Password:
+login[1977]: root login on 'ttyS0'
+[  263.218476] NOHZ: local_softirq_pending 10
+[  263.221946] NOHZ: local_softirq_pending 212
+[  263.223314] NOHZ: local_softirq_pending 212
+[~] # /sbin/daemon_mgr lvmetad start "/sbin/lvmetad"
+```
+
+挂载硬盘，查看信息，关机
+
+```
+[~] # mdadm --examine --scan > /etc/mdadm.conf
+[~] # mdadm --assemble --scan
+[  435.567824] md: md9 stopped.
+[  435.608479] md/raid1:md9: active with 1 out of 4 mirrors
+[  435.625521] md9: detected capacity change from 0 to 542769152
+mdadm: /dev/md9 has been started with 1 drive (out of 4).
+[  435.724549] md: md256 stopped.
+[  435.753420] md/raid1:md256: active with 1 out of 2 mirrors
+[  435.761496] md256: detected capacity change from 0 to 542834688
+mdadm: /dev/md/256 has been started with 1 drive (out of 2).
+[  440.484931] md: md3 stopped.
+[  440.514006] md/raid1:md3: active with 1 out of 2 mirrors
+[  440.518431] md3: detected capacity change from 0 to 1990205046784
+mdadm: /dev/md/3 has been started with 1 drive (out of 2).
+[  445.307489] md: md13 stopped.
+[  445.334744] md/raid1:md13: active with 1 out of 4 mirrors
+[  445.354348] md13: detected capacity change from 0 to 469893120
+mdadm: /dev/md13 has been started with 1 drive (out of 4).
+[  445.461565] md: md322 stopped.
+[  445.491436] md/raid1:md322: active with 1 out of 2 mirrors
+[  445.501222] md322: detected capacity change from 0 to 7408779264
+mdadm: /dev/md/322 has been started with 1 drive (out of 2).
+[~] # pvscan --cache /dev/md3
+[~] # pvs
+  PV         VG   Fmt  Attr PSize PFree
+  /dev/md3   vg1  lvm2 a--  1.81t    0
+[~] # lvs
+  LV    VG   Attr       LSize  Pool Origin Data%  Meta%  Move Log Cpy%Sync Convert
+  lv3   vg1  Vwi---t---  1.20t tp1
+  lv546 vg1  -wi------- 18.54g
+  tp1   vg1  twi---t---  1.73t
+[~] # lvchange -a y vg1/tp1
+[  624.691495] device-mapper: thin metadata: __create_persistent_data_objects: block manger get correctly
+[  624.938353] device-mapper: tier: passdown_tier_discard:4011, tier discard_passdown(4)
+[  624.943398] device-mapper: thin metadata: dm_pool_set_mapped_threshold: threshold: 0 total_mapped_blocks: 2516480 new_threshold: 3623776
+[  624.949234] device-mapper: thin: maybe_resize_data_dev: expand pool origin max threshold to 3623776
+[~] # mount -t ext4 /dev/mapper/vg1-tp1 /mnt/ext
+[  654.455095] ext4_init_reserve_inode_table0: dm-6, 9830
+[  654.458816] ext4_init_reserve_inode_table2: dm-6, 9830, 0, 0, 4096
+[  654.469257] EXT4-fs (dm-6): mounted filesystem with ordered data mode. Opts: (null)
+[~] # umount /mnt/ext
+[~] # halt
+[~] # [  880.271204] md13: detected capacity change from 469893120 to 0
+[  880.274521] md: md13 stopped.
+The system is going down NOW!
+Sent SIGTERM to all processes
+Sent SIGKILL to all processes
+Requesting system halt
+[  883.529520] flashcache flashcache_notify_reboot
+[  883.533401] sd 0:0:1:0: [sdb] Synchronizing SCSI cache
+[  883.535787] sd 0:0:1:0: [sdb] Stopping disk
+[  883.537424] sd 0:0:0:0: [sda] Synchronizing SCSI cache
+[  883.539493] sd 0:0:0:0: [sda] Stopping disk
+[  883.543050] reboot: System halted
+```
