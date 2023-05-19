@@ -347,6 +347,8 @@ PhysicalDrive2 就是通过 usb 转 sata 转接线连接的 NAS 硬盘。
 
 启动信息有看到 drbd 服务启动的信息。最后会有一个报错信息，多等一会儿就看到登录提示了。
 
+admin:admin 登入后先挂载 usr.img 然后登出。
+
 ```
 (none) login:
 Password:
@@ -358,7 +360,7 @@ login[1967]: root login on 'ttyS0'
 [~] # logout
 ```
 
-再次登入，启动 lvmetad 服务
+再次登入，启动 lvmetad 服务。
 
 ```
 Welcome to use the QNAP's products.
@@ -372,9 +374,10 @@ login[1977]: root login on 'ttyS0'
 [~] # /sbin/daemon_mgr lvmetad start "/sbin/lvmetad"
 ```
 
-挂载硬盘，查看信息，关机
+挂载硬盘，查看信息，关机。
 
 ```
+[~] # mkdir -p /run/mdadm/
 [~] # mdadm --examine --scan > /etc/mdadm.conf
 [~] # mdadm --assemble --scan
 [  435.567824] md: md9 stopped.
